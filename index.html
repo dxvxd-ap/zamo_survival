@@ -21,6 +21,8 @@
         </div>
       </div>
       <div id="unity-warning"> </div>
+      <button id="mobile-fullscreen-button" type="button" aria-label="Activar pantalla completa">⛶</button>
+      <div id="mobile-rotate-hint">Gira tu celular horizontalmente para jugar</div>
       <div id="unity-footer">
         <div id="unity-logo-title-footer"></div>
         <div id="unity-fullscreen-button"></div>
@@ -38,6 +40,17 @@
             canvas.requestFullscreen();
           } else if (canvas.webkitRequestFullscreen) {
             canvas.webkitRequestFullscreen();
+          }
+        };
+      }
+      var mobileFullscreenBtn = document.querySelector("#mobile-fullscreen-button");
+      if (mobileFullscreenBtn) {
+        mobileFullscreenBtn.onclick = () => {
+          const container = document.querySelector("#unity-container");
+          const requestFullscreen = container.requestFullscreen || container.webkitRequestFullscreen;
+          if (requestFullscreen) requestFullscreen.call(container);
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock("landscape").catch(() => {});
           }
         };
       }

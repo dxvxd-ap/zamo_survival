@@ -24,6 +24,7 @@
   // ESTADOS DEL JUEGO
   // -------------------------------------------------------------
   let gameState = "STORY"; // STORY, SECTOR_ENTER, PLAYING, PORTAL_WARP, PAUSED, ROUND_OVER, GAME_OVER, VICTORY_TOTAL
+  let tutorialMode = false;
   let roundNumber = 1;
   const MAX_ROUNDS = 5;
   let score = 0;
@@ -194,7 +195,8 @@
 
     if (gameState === "STORY") {
       if (e.code === "Space" || e.code === "Enter") {
-        startGame();
+        if (!tutorialMode) tutorialMode = true;
+        else startGame();
         e.preventDefault();
       }
       return;
@@ -574,7 +576,10 @@
     if (gp.buttons[0] && gp.buttons[0].pressed && !lastGpButtons[0]) {
       if (gameState === "PLAYING") player.dash();
       else if (gameState === "PAUSED") activatePauseButton();
-      else if (gameState === "STORY") startGame();
+      else if (gameState === "STORY") {
+        if (!tutorialMode) tutorialMode = true;
+        else startGame();
+      }
       else if (gameState === "ROUND_OVER") advanceToNextRound();
       else if (gameState === "GAME_OVER") {
         activateGameOverButton();
@@ -615,7 +620,11 @@
   // -------------------------------------------------------------
   function handleCanvasClick(x, y) {
     if (gameState === "STORY") {
-      startGame();
+      if (!tutorialMode) {
+        tutorialMode = true;
+      } else {
+        startGame();
+      }
       return;
     }
 
@@ -2043,6 +2052,7 @@
   }
 
   function startGame() {
+    tutorialMode = false;
     score = 0;
     zombiesKilledTotal = 0;
     shotsFired = 0;
@@ -3028,10 +3038,41 @@
     return shortened.slice(0, shortened.lastIndexOf(" ")) + "...";
   }
 
+  function getTutorialProfile() {
+    if (controlMode === "touch" || isMobileDevice) {
+      return {
+        title: "TUTORIAL // CELULAR",
+        tag: "PERFIL DETECTADO // PANTALLA TÁCTIL",
+        move: "Joystick izquierdo: mover",
+        aim: "AUTO: activar/desactivar autoapuntado",
+        attack: "DISPARO: mantener pulsado",
+        extra: "CORRER · DASH · RECARGA · ARMA"
+      };
+    }
+    if (controlMode === "gamepad" || gamepadConnected) {
+      return {
+        title: "TUTORIAL // MANDO",
+        tag: "PERFIL DETECTADO // CONTROLADOR",
+        move: "Stick izquierdo: mover",
+        aim: "Stick derecho: apuntar · LT/L2: autoapuntar",
+        attack: "RT/R2 o RB: disparar",
+        extra: "L3 correr · A/Cruz dash · X/Cuadrado recargar"
+      };
+    }
+    return {
+      title: "TUTORIAL // PC",
+      tag: "PERFIL DETECTADO // TECLADO Y MOUSE",
+      move: "WASD o flechas: mover",
+      aim: "Mouse: apuntar",
+      attack: "Clic izquierdo: disparar",
+      extra: "Shift correr · Espacio dash · R recargar · Q cambiar arma"
+    };
+  }
+
   // -------------------------------------------------------------
   // TERMINAL DE COMUNICACIONES TÁCTICAS NARRATIVAS (UI PRINCIPAL)
   // -------------------------------------------------------------
-  function drawTacticalModal({ tag, title, log, nextWep, buttonText, isIntro, isRoundOver, isVictory, stats }) {
+  function drawTacticalModal({ tag, title, log, nextWep, buttonText, isIntro, isTutorial, isRoundOver, isVictory, stats }) {
     const entrance = Math.min(1, modalAnim / 16);
     const easedEntrance = 1 - Math.pow(1 - entrance, 3);
     const mW = 780;
@@ -3128,7 +3169,7 @@
     const rcW = mW - 184;
 
     // Caja 1: Transmisión de la Dra. Vance
-    const b1Y = mY + 68;
+    const b1Y = mY + 72;
     const b1H = 96;
     ctx.fillStyle = "rgba(15, 23, 42, 0.72)";
     ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
@@ -3141,15 +3182,15 @@
     ctx.textAlign = "left";
     ctx.font = "bold 12px 'Trebuchet MS', sans-serif";
     ctx.fillStyle = "#38bdf8";
-    ctx.fillText(`TRANSMISIÓN ENTRANTE // CANAL SEGURO:`, rcX + 14, b1Y + 18);
+    ctx.fillText(isTutorial ? "CONTROLES DETECTADOS // PERFIL RECOMENDADO:" : `TRANSMISIÓN ENTRANTE // CANAL SEGURO:`, rcX + 14, b1Y + 18);
 
     ctx.font = "500 13px 'Trebuchet MS', sans-serif";
     ctx.fillStyle = "#e2e8f0";
-    const message = isRoundOver && !isVictory ? shortenText(log.msg, 210) : log.msg;
+    const message = isTutorial ? "Aprende lo esencial, elimina mutantes, recoge suministros y llega al portal cuando la zona esté despejada." : isIntro ? "El virus Ácido-X transformó el laboratorio en una zona de mutantes. Zamo es el único bio-comando consciente y debe purgar los cinco sectores para escapar." : isRoundOver && !isVictory ? shortenText(log.msg, 210) : log.msg;
     wrapText(ctx, message, rcX + 14, b1Y + 36, rcW - 28, 17);
 
     // Caja 2: Respuesta táctica del Sargento Zamo
-    const b2Y = b1Y + b1H + 10;
+    const b2Y = b1Y + b1H + 14;
     const b2H = 68;
     ctx.fillStyle = "rgba(6, 22, 14, 0.78)";
     ctx.strokeStyle = "rgba(34, 197, 94, 0.4)";
@@ -3161,14 +3202,15 @@
 
     ctx.font = "bold 11px 'Rajdhani', sans-serif";
     ctx.fillStyle = "#22c55e";
-    ctx.fillText(`RESPUESTA DE RADIO // SGT. ZAMO:`, rcX + 14, b2Y + 18);
+    ctx.fillText(isTutorial ? "OBJETIVO DE LA MISIÓN:" : `RESPUESTA DE RADIO // SGT. ZAMO:`, rcX + 14, b2Y + 18);
 
     ctx.font = "600 13px 'Trebuchet MS', sans-serif";
     ctx.fillStyle = "#bbf7d0";
-    wrapText(ctx, log.zamoReply, rcX + 14, b2Y + 36, rcW - 28, 17);
+    const objectiveText = isTutorial ? "Purge cada sector, administra tu munición y usa el dash para salir de situaciones peligrosas." : isIntro ? "Tranquila, doctora. Limpiaré el laboratorio y llegaré a la Zona de Meta." : log.zamoReply;
+    wrapText(ctx, objectiveText, rcX + 14, b2Y + 36, rcW - 28, 17);
 
     // Caja 3: Desbloqueo de Arsenal o Controles
-    const b3Y = b2Y + b2H + 10;
+    const b3Y = b2Y + b2H + 14;
     const b3H = 88;
     ctx.fillStyle = "rgba(15, 23, 42, 0.72)";
     ctx.strokeStyle = "rgba(245, 158, 11, 0.35)";
@@ -3178,7 +3220,20 @@
     ctx.fill();
     ctx.stroke();
 
-    if (nextWep) {
+    if (isTutorial) {
+      const profile = getTutorialProfile();
+      ctx.font = "bold 13px 'Trebuchet MS', sans-serif";
+      ctx.fillStyle = "#facc15";
+      ctx.fillText(profile.title, rcX + 14, b3Y + 20);
+      ctx.font = "600 12px 'Trebuchet MS', sans-serif";
+      ctx.fillStyle = "#cbd5e1";
+      ctx.fillText(profile.move, rcX + 14, b3Y + 42);
+      ctx.fillText(profile.aim, rcX + 14, b3Y + 59);
+      ctx.fillText(profile.attack, rcX + 14, b3Y + 76);
+      ctx.font = "600 10px 'Trebuchet MS', sans-serif";
+      ctx.fillStyle = "#38d5ff";
+      ctx.fillText(profile.extra, rcX + 260, b3Y + 59);
+    } else if (nextWep) {
       ctx.font = "bold 13px 'Trebuchet MS', sans-serif";
       ctx.fillStyle = nextWep.color;
       ctx.fillText(`¡NUEVO ARMA SUMINISTRADA: ${nextWep.name.toUpperCase()}!`, rcX + 14, b3Y + 22);
@@ -3258,12 +3313,14 @@
     ctx.fillStyle = "rgba(4, 7, 14, 0.92)";
     ctx.fillRect(0, 0, W, H);
 
+    const profile = tutorialMode ? getTutorialProfile() : null;
     drawTacticalModal({
-      tag: "INFORME DE MISIÓN // INCIDENTE EN LABORATORIO",
-      title: "OPERACIÓN FUGA: EL DESPERTAR DEL SARGENTO ZAMO",
+      tag: profile ? profile.tag : "INFORME DE MISIÓN // INCIDENTE EN LABORATORIO",
+      title: profile ? profile.title : "OPERACIÓN FUGA: EL DESPERTAR DEL SARGENTO ZAMO",
       log: STORY_LOGS.intro,
-      buttonText: "INICIAR MISIÓN  •  DESPLEGAR A ZAMO",
-      isIntro: true
+      buttonText: tutorialMode ? "INICIAR MISIÓN  •  DESPLEGAR A ZAMO" : "VER CONTROLES  •  PREPARAR MISIÓN",
+      isIntro: !tutorialMode,
+      isTutorial: tutorialMode
     });
   }
 

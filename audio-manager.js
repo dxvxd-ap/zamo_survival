@@ -654,6 +654,26 @@
         #zamo-audio-hud.minimized .hud-content {
           display: none;
         }
+        #zamo-audio-hud.minimized {
+          padding: 6px 10px;
+          opacity: 0.72;
+        }
+        #zamo-audio-hud.mobile {
+          bottom: max(8px, env(safe-area-inset-bottom));
+          max-width: calc(100vw - 24px);
+        }
+        #zamo-audio-hud.mobile .hud-content {
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+        #zamo-audio-hud.mobile .hud-btn {
+          font-size: 11px;
+          padding: 5px 8px;
+        }
+        #zamo-audio-hud.mobile .hud-test-popup {
+          bottom: 44px;
+          width: min(320px, calc(100vw - 28px));
+        }
         .hud-badge {
           display: flex;
           align-items: center;
@@ -788,6 +808,14 @@
     `;
 
     document.body.appendChild(hud);
+
+    const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+    if (isTouchDevice) {
+      hud.classList.add('mobile', 'minimized');
+      hud.querySelector('.hud-badge').title = 'Mostrar u ocultar controles de audio';
+      hud.querySelector('.hud-badge').style.cursor = 'pointer';
+      hud.querySelector('.hud-badge').onclick = () => hud.classList.toggle('minimized');
+    }
 
     // Eventos UI
     const btnBgm = document.querySelector('#btn-toggle-bgm');

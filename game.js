@@ -320,26 +320,31 @@
     return closest;
   }
 
+  function getCanvasPoint(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left) * (canvas.width / rect.width),
+      y: (clientY - rect.top) * (canvas.height / rect.height)
+    };
+  }
+
   function handleTouchStart(e) {
     controlMode = "touch";
     touchControls.enabled = true;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
 
     if (gameState !== "PLAYING") {
       const t = e.changedTouches[0];
-      const tx = (t.clientX - rect.left) * scaleX;
-      const ty = (t.clientY - rect.top) * scaleY;
-      handleCanvasClick(tx, ty);
+      const point = getCanvasPoint(t.clientX, t.clientY);
+      handleCanvasClick(point.x, point.y);
       e.preventDefault();
       return;
     }
 
     for (let i = 0; i < e.changedTouches.length; i++) {
       const t = e.changedTouches[i];
-      const tx = (t.clientX - rect.left) * scaleX;
-      const ty = (t.clientY - rect.top) * scaleY;
+      const point = getCanvasPoint(t.clientX, t.clientY);
+      const tx = point.x;
+      const ty = point.y;
 
       // Botón de Pausa superior derecho
       if (tx >= W - 110 && tx <= W - 20 && ty >= 10 && ty <= 50) {
@@ -350,7 +355,7 @@
       // Botones de acción táctil en la derecha
       let hitBtn = false;
       for (const btn of touchControls.buttons) {
-        if (Math.hypot(tx - btn.x, ty - btn.y) < btn.r + 12) {
+        if (Math.hypot(tx - btn.x, ty - btn.y) < btn.r + 24) {
           btn.pressed = true;
           hitBtn = true;
           if (btn.id === "shoot") player.shoot();
@@ -382,15 +387,13 @@
 
   function handleTouchMove(e) {
     if (gameState !== "PLAYING") return;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
 
     for (let i = 0; i < e.changedTouches.length; i++) {
       const t = e.changedTouches[i];
       if (touchControls.stick.active && t.identifier === touchControls.stick.id) {
-        const tx = (t.clientX - rect.left) * scaleX;
-        const ty = (t.clientY - rect.top) * scaleY;
+        const point = getCanvasPoint(t.clientX, t.clientY);
+        const tx = point.x;
+        const ty = point.y;
         const dx = tx - touchControls.stick.baseX;
         const dy = ty - touchControls.stick.baseY;
         const dist = Math.hypot(dx, dy);

@@ -297,12 +297,12 @@
       handleR: 24
     },
     buttons: [
-      { id: "shoot", x: W - 85, y: H - 85, r: 38, icon: "🔥", label: "DISPARO", bg: "#ef4444", pressed: false },
-      { id: "aim", x: W - 180, y: H - 65, r: 26, icon: "🎯", label: "AUTO", bg: "#38bdf8", pressed: false },
-      { id: "dash", x: W - 85, y: H - 180, r: 28, icon: "⚡", label: "DASH", bg: "#22c55e", pressed: false },
-      { id: "sprint", x: W - 175, y: H - 205, r: 26, icon: "🏃", label: "CORRER", bg: "#f97316", pressed: false },
-      { id: "reload", x: W - 175, y: H - 130, r: 26, icon: "🔄", label: "RECARGA", bg: "#f59e0b", pressed: false },
-      { id: "swap", x: W - 40, y: H - 175, r: 26, icon: "🔫", label: "ARMA", bg: "#c084fc", pressed: false }
+      { id: "shoot", x: W - 105, y: H - 78, r: 38, icon: "🔥", label: "DISPARO", bg: "#ef4444", pressed: false },
+      { id: "aim", x: W - 265, y: H - 68, r: 24, icon: "🎯", label: "AUTO", bg: "#38bdf8", pressed: false },
+      { id: "dash", x: W - 105, y: H - 195, r: 27, icon: "⚡", label: "DASH", bg: "#22c55e", pressed: false },
+      { id: "sprint", x: W - 265, y: H - 185, r: 24, icon: "🏃", label: "CORRER", bg: "#f97316", pressed: false },
+      { id: "reload", x: W - 265, y: H - 130, r: 24, icon: "🔄", label: "RECARGA", bg: "#f59e0b", pressed: false },
+      { id: "swap", x: W - 45, y: H - 310, r: 24, icon: "🔫", label: "ARMA", bg: "#c084fc", pressed: false }
     ]
   };
 

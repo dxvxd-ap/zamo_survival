@@ -1,0 +1,10 @@
+# Archivos temporales de Windows
+Thumbs.db
+.DS_Store
+
+# Configuración local de editores
+.vscode/
+
+# Salidas y dependencias locales
+node_modules/
+.vercel/

@@ -306,6 +306,58 @@
     ]
   };
 
+  const touchButtonOverlay = document.createElement("div");
+  touchButtonOverlay.id = "zamo-touch-button-overlay";
+  document.body.appendChild(touchButtonOverlay);
+
+  function activateTouchButton(btn) {
+    btn.pressed = true;
+    if (btn.id === "shoot") player.shoot();
+    else if (btn.id === "aim") {
+      touchControls.autoAim = !touchControls.autoAim;
+      showBanner(touchControls.autoAim ? "🎯 AUTO-APUNTADO ACTIVADO" : "🎯 AUTO-APUNTADO DESACTIVADO", "#38bdf8", 80);
+    } else if (btn.id === "dash") player.dash();
+    else if (btn.id === "reload") player.reload();
+    else if (btn.id === "swap") player.cycleWeapon(1);
+  }
+
+  function positionTouchButtonOverlay() {
+    const rect = canvas.getBoundingClientRect();
+    touchButtonOverlay.replaceChildren();
+    if (!touchControls.enabled || rect.width === 0 || rect.height === 0) return;
+
+    for (const btn of touchControls.buttons) {
+      const hit = document.createElement("button");
+      hit.type = "button";
+      hit.className = "zamo-touch-hit";
+      hit.setAttribute("aria-label", btn.label);
+      const diameter = (btn.r * 2 + 22) / W * rect.width;
+      hit.style.width = `${diameter}px`;
+      hit.style.height = `${diameter}px`;
+      hit.style.left = `${rect.left + (btn.x / W) * rect.width - diameter / 2}px`;
+      hit.style.top = `${rect.top + (btn.y / H) * rect.height - diameter / 2}px`;
+      hit.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        hit.setPointerCapture?.(event.pointerId);
+        activateTouchButton(btn);
+      });
+      const release = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        btn.pressed = false;
+      };
+      hit.addEventListener("pointerup", release);
+      hit.addEventListener("pointercancel", release);
+      hit.addEventListener("pointerleave", release);
+      touchButtonOverlay.appendChild(hit);
+    }
+  }
+
+  window.addEventListener("resize", positionTouchButtonOverlay);
+  window.addEventListener("orientationchange", () => setTimeout(positionTouchButtonOverlay, 100));
+  setTimeout(positionTouchButtonOverlay, 0);
+
   function getClosestZombie() {
     let closest = null;
     let minDist = Infinity;
@@ -354,20 +406,18 @@
 
       // Botones de acción táctil en la derecha
       let hitBtn = false;
+      let closestButton = null;
+      let closestDistance = Infinity;
       for (const btn of touchControls.buttons) {
-        if (Math.hypot(tx - btn.x, ty - btn.y) < btn.r + 24) {
-          btn.pressed = true;
-          hitBtn = true;
-          if (btn.id === "shoot") player.shoot();
-          else if (btn.id === "aim") {
-            touchControls.autoAim = !touchControls.autoAim;
-            showBanner(touchControls.autoAim ? "🎯 AUTO-APUNTADO ACTIVADO" : "🎯 AUTO-APUNTADO DESACTIVADO", "#38bdf8", 80);
-          } else if (btn.id === "dash") player.dash();
-          else if (btn.id === "sprint") btn.pressed = true;
-          else if (btn.id === "reload") player.reload();
-          else if (btn.id === "swap") player.cycleWeapon(1);
-          break;
+        const distance = Math.hypot(tx - btn.x, ty - btn.y);
+        if (distance < btn.r + 18 && distance < closestDistance) {
+          closestButton = btn;
+          closestDistance = distance;
         }
+      }
+      if (closestButton) {
+        activateTouchButton(closestButton);
+        hitBtn = true;
       }
 
       // Joystick virtual en la mitad izquierda
